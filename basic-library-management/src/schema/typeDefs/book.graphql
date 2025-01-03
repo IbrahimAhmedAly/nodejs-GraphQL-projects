@@ -1,8 +1,23 @@
+scalar Date
+
+type pageInfo {
+  total: Int!
+  pages: Int!
+  currentPage: Int!
+  hasNext: Boolean!
+}
+
+type BookConnection {
+  books: [Book!]!
+  pageInfo: pageInfo!
+}
+
 type Book {
   id: ID!
   title: String!
   author: Author!
   publishedYear: Int
+  publishedDate: Date
   genre: String
 }
 
@@ -14,7 +29,14 @@ input BookInput {
 }
 
 type Query {
-  books: [Book]
+  books(
+    page: Int
+    limit: Int
+    genre: String
+    yearFrom: Int
+    yearTo: Int
+    searchTitle: String
+  ): BookConnection!
   book(id: ID!): Book
 }
 

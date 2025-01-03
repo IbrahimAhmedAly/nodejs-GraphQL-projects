@@ -1,7 +1,10 @@
 const Book = require("../../models/Book");
 const Author = require("../../models/Author");
+const DateScalar = require("../scalars/dateScalar");
 
 const bookResolvers = {
+  Date: DateScalar,
+
   Query: {
     books: async () => await Book.find(),
     book: async (_, { id }) => await Book.findById(id),
