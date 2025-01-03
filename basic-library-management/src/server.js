@@ -1,34 +1,35 @@
 const express = require("express");
-const cors = require("cors");
+const { ApolloServer } = require("@apollo/server");
+const { expressMiddleware } = require("@apollo/server/express4");
+const { loadFilesSync } = require("@graphql-tools/load-files");
+const { makeExecutableSchema } = require("@graphql-tools/schema");
+const path = require("path");
 const connectDB = require("./database/connection");
 
-const app = express();
+const typeDefs = loadFilesSync(path.join(__dirname, "schema/typeDefs"));
+const resolvers = loadFilesSync(path.join(__dirname, "schema/resolvers"));
 
-async function startApolloServer() {
+async function startServer() {
+  const app = express();
   await connectDB();
 
-  // Apply middleware
-  //   app.use(cors());
-  app.use(express.json());
-
-  // Health check endpoint
-  app.get("/health", (req, res) => {
-    res.status(200).send("OK");
+  const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers,
   });
 
-  // Start server
+  const server = new ApolloServer({
+    schema,
+  });
+
+  await server.start();
+
+  app.use("/graphql", express.json(), expressMiddleware(server));
+
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
-    console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
+    console.log(`Server running at http://localhost:${PORT}/graphql`);
   });
 }
 
-// Handle errors
-process.on("unhandledRejection", (err) => {
-  console.log("Unhandled Rejection:", err);
-  process.exit(1);
-});
-
-startApolloServer().catch((error) => {
-  console.error("Failed to start server:", error);
-});
+startServer();
